@@ -60,82 +60,69 @@ mod tests {
     #[deny(soft_unstable)]
     use test::Bencher;
 
+    use hex;
+
     macro_rules! test_one {
-        ($h:expr, $data:expr) => {{
-            let got = hash(0x5D70D359C498B3F8, $data);
-            assert_eq!($h, got, "data={:?}", $data);
+        ($seed:expr, $data:expr, $h:expr) => {{
+            let input = if $data.len() > 0 {
+                hex::decode($data).unwrap()
+            } else {
+                Vec::<u8>::new()
+            };
+            let want = ($h >> 32) ^ $h;
+            let got = hash($seed, &input);
+            assert_eq!(want as u32, got, "data={:?}", $data);
         }};
     }
 
     #[test]
-    fn smoke() {
-        test_one!(0xf7f2c954, b"");
-        test_one!(0xd46e71f7, b"a");
-        test_one!(0xb40c651c, b"ab");
-        test_one!(0x5b3bc23d, b"abc");
-        test_one!(0x6b15e57b, b"abcd");
-        test_one!(0x601e6ea8, b"abcde");
-        test_one!(0xfc18bd2c, b"abcdef");
-        test_one!(0x79b01bfb, b"abcdefg");
-        test_one!(0x54793238, b"abcdefgh");
-        test_one!(0xebf98191, b"abcdefghi");
-        test_one!(0x68a8001d, b"abcdefghij");
-        test_one!(0x659105c1, b"Discard medicine more than two years old.");
-        test_one!(
-            0xb98b31d,
-            b"He who has a shady past knows that nice guys finish last."
-        );
-        test_one!(0xbae17c9a, b"I wouldn't marry him with a ten foot pole.");
-        test_one!(
-            0x9a299f69,
-            b"Free! Free!/A trip/to Mars/for 900/empty jars/Burma Shave"
-        );
-        test_one!(
-            0xb463d704,
-            b"The days of the digital watch are numbered.  -Tom Stoppard"
-        );
-        test_one!(0xe6059c5f, b"Nepal premier won't resign.");
-        test_one!(
-            0xbdd4f772,
-            b"For every action there is an equal and opposite government program."
-        );
-        test_one!(
-            0x12af7ede,
-            b"His money is twice tainted: 'taint yours and 'taint mine."
-        );
-        test_one!(0x1e9cae8, b"There is no reason for any individual to have a computer in their home. -Ken Olsen, 1977");
-        test_one!(
-            0xcb683e33,
-            b"It's a tiny change to the code and not completely disgusting. - Bob Manchek"
-        );
-        test_one!(0x2074fbfa, b"size:  a.out:  bad magic");
-        test_one!(
-            0x52abb615,
-            b"The major problem is with sendmail.  -Mark Horton"
-        );
-        test_one!(
-            0x5a509711,
-            b"Give me a rock, paper and scissors and I will move the world.  CCFestoon"
-        );
-        test_one!(
-            0xf97f5273,
-            b"If the enemy is within range, then so are you."
-        );
-        test_one!(
-            0x494c0cb,
-            b"It's well we cannot hear the screams/That we create in others' dreams."
-        );
-        test_one!(
-            0x7150a3c0,
-            b"You remind me of a TV show, but that's all right: I watch it anyway."
-        );
-        test_one!(0xc5f56430, b"C is as portable as Stonehedge!!");
-        test_one!(0x712bcf01, b"Even if I could be Shakespeare, I think I should still choose to be Faraday. - A. Huxley");
-        test_one!(0xedd44de6, b"The fugacity of a constituent in a mixture of gases at a given temperature is proportional to its mole fraction.  Lewis-Randall Rule");
-        test_one!(
-            0xd9440105,
-            b"How can you write a big system without C++?  -Paul Glick"
-        );
+    fn test_dotnet_runtime() {
+        // Tests from https://github.com/dotnet/runtime/blob/master/src/libraries/Common/tests/Tests/System/MarvinTests.cs
+
+        let Seed1: u64 = 0x4FB61A001BDBCC;
+        let Seed2: u64 = 0x804FB61A001BDBCC;
+        let Seed3: u64 = 0x804FB61A801BDBCC;
+        let TestDataString0Byte = b"";
+        let TestDataString1Byte = b"af";
+        let TestDataString2Byte = b"e70f";
+        let TestDataString3Byte = b"37f495";
+        let TestDataString4Byte = b"8642dc59";
+        let TestDataString5Byte = b"153fb79826";
+        let TestDataString6Byte = b"0932e6246c47";
+        let TestDataString7Byte = b"ab427ea8d10fc7";
+
+        test_one!(Seed1, TestDataString0Byte, 0x30ED35C100CD3C7Du64);
+        test_one!(Seed1, TestDataString1Byte, 0x48E73FC77D75DDC1u64);
+        test_one!(Seed1, TestDataString2Byte, 0xB5F6E1FC485DBFF8u64);
+        test_one!(Seed1, TestDataString3Byte, 0xF0B07C789B8CF7E8u64);
+        test_one!(Seed1, TestDataString4Byte, 0x7008F2E87E9CF556u64);
+        test_one!(Seed1, TestDataString5Byte, 0xE6C08C6DA2AFA997u64);
+        test_one!(Seed1, TestDataString6Byte, 0x6F04BF1A5EA24060u64);
+        test_one!(Seed1, TestDataString7Byte, 0xE11847E4F0678C41u64);
+
+        test_one!(Seed2, TestDataString0Byte, 0x10A9D5D3996FD65Du64);
+        test_one!(Seed2, TestDataString1Byte, 0x68201F91960EBF91u64);
+        test_one!(Seed2, TestDataString2Byte, 0x64B581631F6AB378u64);
+        test_one!(Seed2, TestDataString3Byte, 0xE1F2DFA6E5131408u64);
+        test_one!(Seed2, TestDataString4Byte, 0x36289D9654FB49F6u64);
+        test_one!(Seed2, TestDataString5Byte, 0xA06114B13464DBDu64);
+        test_one!(Seed2, TestDataString6Byte, 0xD6DD5E40AD1BC2EDu64);
+        test_one!(Seed2, TestDataString7Byte, 0xE203987DBA252FB3u64);
+
+        test_one!(Seed3, "00", 0xA37FB0DA2ECAE06Cu64);
+        test_one!(Seed3, "FF", 0xFECEF370701AE054u64);
+        test_one!(Seed3, "00FF", 0xA638E75700048880u64);
+        test_one!(Seed3, "FF00", 0xBDFB46D969730E2Au64);
+        test_one!(Seed3, "FF00FF", 0x9D8577C0FE0D30BFu64);
+        test_one!(Seed3, "00FF00", 0x4F9FBDDE15099497u64);
+        test_one!(Seed3, "00FF00FF", 0x24EAA279D9A529CAu64);
+        test_one!(Seed3, "FF00FF00", 0xD3BEC7726B057943u64);
+        test_one!(Seed3, "FF00FF00FF", 0x920B62BBCA3E0B72u64);
+        test_one!(Seed3, "00FF00FF00", 0x1D7DDF9DFDF3C1BFu64);
+        test_one!(Seed3, "00FF00FF00FF", 0xEC21276A17E821A5u64);
+        test_one!(Seed3, "FF00FF00FF00", 0x6911A53CA8C12254u64);
+        test_one!(Seed3, "FF00FF00FF00FF", 0xFDFD187B1D3CE784u64);
+        test_one!(Seed3, "00FF00FF00FF00", 0x71876F2EFB1B0EE8u64);
     }
 
     macro_rules! bench_hash {
