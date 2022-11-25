@@ -1,5 +1,3 @@
-#![feature(test)]
-
 use std::convert::TryInto;
 
 struct State {
@@ -34,10 +32,10 @@ pub fn hash(seed: u64, data: &[u8]) -> u32 {
 
     let fin = match bytes.len() {
         0 => 0x80,
-        1 => (0x80 as u32) << 8 | bytes[0] as u32,
-        2 => (0x80 as u32) << 16 | u16::from_le_bytes(bytes[..2].try_into().unwrap()) as u32,
+        1 => 0x80_u32 << 8 | bytes[0] as u32,
+        2 => 0x80_u32 << 16 | u16::from_le_bytes(bytes[..2].try_into().unwrap()) as u32,
         3 => {
-            (0x80 as u32) << 24
+            0x80_u32 << 24
                 | u16::from_le_bytes(bytes[..2].try_into().unwrap()) as u32
                 | (bytes[2] as u32) << 16
         }
@@ -50,17 +48,11 @@ pub fn hash(seed: u64, data: &[u8]) -> u32 {
     s.lo ^ s.hi
 }
 
-extern crate test;
 
 #[cfg(test)]
 mod tests {
 
     use super::*;
-
-    #[deny(soft_unstable)]
-    use test::Bencher;
-
-    use hex;
 
     macro_rules! test_one {
         ($seed:expr, $data:expr, $h:expr) => {{
@@ -124,36 +116,4 @@ mod tests {
         test_one!(seed_3, "FF00FF00FF00FF", 0xFDFD187B1D3CE784u64);
         test_one!(seed_3, "00FF00FF00FF00", 0x71876F2EFB1B0EE8u64);
     }
-
-    macro_rules! bench_hash {
-        ($name:ident, $size:expr) => {
-            #[bench]
-            fn $name(b: &mut Bencher) {
-                let mut val: u32 = 0;
-
-                let mut v = Vec::<u8>::new();
-                v.resize($size, 0);
-
-                b.iter(|| {
-                    val += hash(0, &v);
-                })
-            }
-        };
-    }
-
-    bench_hash!(benchmark_0008, 8);
-    bench_hash!(benchmark_0016, 16);
-    bench_hash!(benchmark_0032, 32);
-    bench_hash!(benchmark_0040, 40);
-    bench_hash!(benchmark_0060, 60);
-    bench_hash!(benchmark_0064, 64);
-    bench_hash!(benchmark_0072, 72);
-    bench_hash!(benchmark_0080, 80);
-    bench_hash!(benchmark_0100, 100);
-    bench_hash!(benchmark_0150, 150);
-    bench_hash!(benchmark_0200, 200);
-    bench_hash!(benchmark_0250, 250);
-    bench_hash!(benchmark_0512, 512);
-    bench_hash!(benchmark_1024, 1024);
-    bench_hash!(benchmark_8192, 8192);
 }
